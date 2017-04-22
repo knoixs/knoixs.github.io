@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+
+    
+  <url>
+    <loc>http://yoursite.com/2016/12/21/nginx%E9%87%8D%E8%A3%85%E8%AE%B0%E5%BD%95/</loc>
+    <lastmod>2017-04-22T18:52:31.748Z</lastmod>
+    <data>
+        <display>
+        <title>nginx重装记录</title>
+        <pubTime>2016-12-20T18:40:21.000Z</pubTime>
+        
+        <tag>Nginx</tag>
+         
+         
+           
+             
+              <breadCrumb title="服务器" url="http://yoursite.com/categories/%E6%9C%8D%E5%8A%A1%E5%99%A8/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://yoursite.com/2016/12/21/MySQL%E5%9F%BA%E6%9C%AC%E8%AF%AD%E5%8F%A5/</loc>
+    <lastmod>2017-04-22T14:50:50.704Z</lastmod>
+    <data>
+        <display>
+        <title>MySQL基本语句</title>
+        <pubTime>2016-12-21T13:19:04.000Z</pubTime>
+        
+        <tag>MySQL</tag>
+         
+         
+           
+             
+              <breadCrumb title="数据库" url="http://yoursite.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
+    
+    
+    
+  <url>
+    <loc>http://yoursite.com/2017/04/22/hello-world/</loc>
+    <lastmod>2017-04-22T09:01:07.659Z</lastmod>
+    <data>
+        <display>
+        <title>Hello World</title>
+        <pubTime>2017-04-22T09:01:07.659Z</pubTime>
+        
+         
+           
+        </display>
+    </data>
+    </url>
+
+</urlset>
