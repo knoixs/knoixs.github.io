@@ -556,6 +556,28 @@
             transform: scale(1.05);
         }
 
+        .prize-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .screenshot-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .screenshot-btn:hover {
+            transform: scale(1.05);
+        }
+
         /* 彩带动画 */
         @keyframes confetti-fall {
             0% { transform: translateY(-100vh) rotate(0deg); }
@@ -686,21 +708,55 @@
             .enter-matrix-btn { font-size: 0.8rem; padding: 12px 25px; }
 
             /* 抽奖页面移动端适配 */
-            .lottery-title { font-size: 1.5rem; }
-            .lottery-subtitle { font-size: 0.85rem; }
+            .lottery-title { font-size: 1.4rem; margin-bottom: 8px; }
+            .lottery-subtitle { font-size: 0.8rem; margin-bottom: 20px; }
             .gift-box-grid {
-                gap: 15px;
+                gap: 12px;
             }
             .gift-card {
-                width: 120px;
-                height: 120px;
-                padding: 20px;
+                width: 100px;
+                height: 100px;
+                padding: 12px;
             }
-            .gift-icon { font-size: 3rem; }
-            .gift-status { font-size: 0.7rem; }
-            .prize-icon { font-size: 3rem; }
-            .prize-title { font-size: 1.2rem; }
-            .prize-desc { font-size: 0.85rem; }
+            .gift-icon { font-size: 2.5rem; margin-bottom: 5px; }
+            .gift-status { font-size: 0.65rem; }
+            .lottery-container { padding: 10px 0; }
+            .prize-icon { font-size: 2.5rem; }
+            .prize-title { font-size: 1.1rem; }
+            .prize-desc { font-size: 0.8rem; }
+            .prize-card { padding: 25px; }
+            .prize-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .screenshot-btn, .close-prize-btn {
+                width: 100%;
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            /* 确保抽奖页面在手机端可以滚动查看全部内容 */
+            #screen-6 {
+                overflow-y: auto;
+                justify-content: flex-start;
+                padding-top: 40px;
+            }
+        }
+
+        /* 超小屏幕适配 */
+        @media (max-width: 380px) {
+            .lottery-title { font-size: 1.2rem; }
+            .lottery-subtitle { font-size: 0.75rem; }
+            .gift-box-grid {
+                gap: 10px;
+            }
+            .gift-card {
+                width: 90px;
+                height: 90px;
+                padding: 10px;
+            }
+            .gift-icon { font-size: 2rem; }
+            .gift-status { font-size: 0.6rem; }
         }
     </style>
 </head>
@@ -818,11 +874,14 @@
 
     <!-- 奖品弹窗 -->
     <div class="prize-modal" id="prize-modal">
-        <div class="prize-card">
+        <div class="prize-card" id="prize-card">
             <div class="prize-icon" id="prize-icon">🎉</div>
             <div class="prize-title" id="prize-title">恭喜中奖！</div>
             <div class="prize-desc" id="prize-desc"></div>
-            <button class="close-prize-btn" onclick="closePrizeModal()">继续抽取</button>
+            <div class="prize-actions">
+                <button class="screenshot-btn" onclick="savePrizeScreenshot()">📸 保存截图</button>
+                <button class="close-prize-btn" onclick="closePrizeModal()">继续抽取</button>
+            </div>
         </div>
     </div>
 
@@ -835,6 +894,7 @@
         <span class="music-icon" id="music-icon">🔊</span>
     </div>
 
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
         // --- 0. 花瓣粒子系统 ---
         const petalCanvas = document.getElementById('petal-canvas');
@@ -1249,6 +1309,27 @@
 
         function closePrizeModal() {
             document.getElementById('prize-modal').classList.remove('show');
+        }
+
+        function savePrizeScreenshot() {
+            const prizeCard = document.getElementById('prize-card');
+            const prizeTitle = document.getElementById('prize-title').textContent;
+
+            html2canvas(prizeCard, {
+                backgroundColor: '#ffffff',
+                scale: 2, // 提高清晰度
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = `${prizeTitle}_${new Date().getTime()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                console.error('Screenshot failed:', err);
+                alert('截图保存失败，请重试');
+            });
         }
 
         function createConfetti() {
