@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Relevant Person</title>
+    <style>
+        /* --- 基础设置 --- */
+        :root {
+            /* Matrix 风格变量 */
+            --bg-color: #0B0C10;
+            --term-green: #00FF41;
+            --alert-red: #FF3333;
+            --coffee-gold: #C68E59;
+            --scan-yellow: #FFD700;
+            --font-mono: 'Courier New', Courier, monospace;
+
+            /* 莫奈花园变量 */
+            --primary-pink: #ffafbd;
+            --primary-orange: #ffc3a0;
+            --glass-bg: rgba(255, 255, 255, 0.2);
+            --text-color: #4a4a4a;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--term-green);
+            font-family: var(--font-mono);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- 背景 Canvas (代码雨) --- */
+        #matrix-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+            transition: opacity 1s ease;
+        }
+
+        /* --- 莫奈花园渐变背景 --- */
+        #garden-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ffafbd, #ffc3a0, #ffafbd, #c9ffbf);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            z-index: -2;
+            transition: opacity 1s ease;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- 花瓣 Canvas --- */
+        #petal-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+            transition: opacity 1s ease;
+        }
+
+        /* --- 通用容器 --- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 1s ease;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* --- 第一阶段：莫奈花园 --- */
+        #screen-1 {
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+            transform: translateY(0);
+            transition: all 0.5s ease;
+        }
+
+        .garden h1 {
+            color: #fff;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        .garden-message {
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        .gift-box {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .garden-btn {
+            background: white;
+            color: #ff8a9a;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        .garden-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        #secret-text {
+            margin-top: 20px;
+            min-height: 50px;
+            font-style: italic;
+            color: #666;
+            animation: fadeIn 1s ease;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .garden-footer {
+            position: absolute;
+            bottom: 20px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        .enter-matrix-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            background: transparent;
+            border: 2px solid var(--term-green);
+            color: var(--term-green);
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .enter-matrix-btn:hover {
+            background: var(--term-green);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--term-green);
+        }
+
+        /* --- 第一阶段：系统启动 --- */
+        .terminal-text {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            text-shadow: 0 0 5px var(--term-green);
+            max-width: 600px;
+            white-space: pre-wrap;
+        }
+
+        .start-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            background: transparent;
+            border: 2px solid var(--term-green);
+            color: var(--term-green);
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: pulse 2s infinite;
+            display: none; /* JS 控制显示 */
+        }
+
+        .start-btn:hover {
+            background: var(--term-green);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--term-green);
+        }
+
+        /* --- 第二阶段：扫描分析 --- */
+        .scan-frame {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--term-green);
+            box-shadow: 0 0 10px var(--term-green);
+            animation: scan 2s linear infinite;
+        }
+
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--term-green);
+            border-style: solid;
+        }
+        .tl { top: -2px; left: -2px; border-width: 2px 0 0 2px; }
+        .tr { top: -2px; right: -2px; border-width: 2px 2px 0 0; }
+        .bl { bottom: -2px; left: -2px; border-width: 0 0 2px 2px; }
+        .br { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; }
+
+        .data-panel {
+            text-align: left;
+            font-size: 0.9rem;
+            background: rgba(0, 20, 0, 0.8);
+            padding: 15px;
+            border-left: 3px solid var(--term-green);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .data-row {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .data-label { opacity: 0.7; }
+        .data-val { font-weight: bold; }
+
+        /* --- 第三阶段：咖啡解密 --- */
+        .riddle-container {
+            max-width: 500px;
+        }
+        
+        .riddle-text {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            font-style: italic;
+            color: #fff;
+        }
+
+        .coffee-cup {
+            font-size: 4rem;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s;
+            filter: drop-shadow(0 0 10px var(--coffee-gold));
+        }
+
+        .coffee-cup:hover {
+            transform: scale(1.1);
+        }
+
+        .steam {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            width: 10px;
+            height: 20px;
+            background: rgba(255,255,255,0.5);
+            filter: blur(5px);
+            animation: rise 1.5s infinite;
+            opacity: 0;
+        }
+        .steam:nth-child(2) { left: 40%; animation-delay: 0.5s; }
+        .steam:nth-child(3) { left: 60%; animation-delay: 1s; }
+
+        .date-reveal {
+            font-size: 3rem;
+            color: var(--coffee-gold);
+            font-weight: bold;
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease;
+        }
+
+        /* --- 第四阶段：终极交付 --- */
+        .final-message {
+            border: 1px solid var(--scan-yellow);
+            padding: 30px;
+            background: rgba(20, 20, 0, 0.9);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+            max-width: 600px;
+            position: relative;
+        }
+
+        .poi-box {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px solid var(--scan-yellow);
+            pointer-events: none;
+        }
+        
+        .poi-corner {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-color: var(--scan-yellow);
+            border-style: solid;
+        }
+        .pc-tl { top: 0; left: 0; border-width: 3px 0 0 3px; }
+        .pc-tr { top: 0; right: 0; border-width: 3px 3px 0 0; }
+        .pc-bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+        .pc-br { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+
+        h1 {
+            color: var(--scan-yellow);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #eee;
+        }
+
+        .highlight {
+            color: var(--term-green);
+            font-weight: bold;
+        }
+
+        .signature {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: #888;
+            font-style: italic;
+        }
+
+        /* --- 第五阶段：抽奖页面 --- */
+        .lottery-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .lottery-container {
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .lottery-title {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .lottery-subtitle {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 30px;
+        }
+
+        .gift-box-grid {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .gift-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 3px solid rgba(255,255,255,0.5);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .gift-card:hover:not(.revealed) {
+            transform: translateY(-10px) scale(1.05);
+            border-color: #ffd700;
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
+        }
+
+        .gift-card.revealed {
+            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+            border-color: #fff;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .gift-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .gift-card.revealed .gift-icon {
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .gift-status {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 5px;
+        }
+
+        .gift-number {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* 奖品弹窗 */
+        .prize-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .prize-modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .prize-card {
+            background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .prize-modal.show .prize-card {
+            transform: scale(1);
+            animation: prizeReveal 0.5s ease;
+        }
+
+        @keyframes prizeReveal {
+            0% { transform: scale(0.8) rotate(-5deg); }
+            50% { transform: scale(1.1) rotate(2deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .prize-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .prize-title {
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .prize-desc {
+            font-size: 0.95rem;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .close-prize-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-prize-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 彩带动画 */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confetti-fall 3s linear forwards;
+            z-index: 999;
+        }
+
+        /* --- 彩蛋：像素狗 --- */
+        .pixel-dog {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect x="2" y="2" width="6" height="6" fill="%23C68E59"/><rect x="1" y="3" width="1" height="2" fill="%23C68E59"/><rect x="8" y="3" width="1" height="2" fill="%23C68E59"/><rect x="3" y="1" width="4" height="1" fill="%23C68E59"/><rect x="3" y="4" width="1" height="1" fill="black"/><rect x="6" y="4" width="1" height="1" fill="black"/></svg>');
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+        .pixel-dog:active {
+            transform: scale(0.9);
+        }
+        .dog-bubble {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: white;
+            color: black;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-family: sans-serif;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        /* --- 音乐控制按钮 --- */
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .music-control.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .music-control:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .music-icon {
+            font-size: 1.2rem;
+            color: var(--term-green);
+        }
+
+        /* --- 动画关键帧 --- */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px var(--term-green); }
+            50% { box-shadow: 0 0 20px var(--term-green); }
+            100% { box-shadow: 0 0 5px var(--term-green); }
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) scaleY(1); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-30px) scaleY(1.5); opacity: 0; }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .glitch-effect {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: var(--alert-red);
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 600px) {
+            .terminal-text { font-size: 1rem; }
+            .data-panel { font-size: 0.8rem; }
+            h1 { font-size: 1.4rem; }
+
+            .garden h1 { font-size: 1.4rem; }
+            .garden-message { font-size: 0.95rem; }
+            .garden-btn { padding: 10px 20px; font-size: 0.9rem; }
+            .glass-card { padding: 25px; }
+            .gift-box { gap: 10px; }
+            .enter-matrix-btn { font-size: 0.8rem; padding: 12px 25px; }
+
+            /* 抽奖页面移动端适配 */
+            .lottery-title { font-size: 1.5rem; }
+            .lottery-subtitle { font-size: 0.85rem; }
+            .gift-box-grid {
+                gap: 15px;
+            }
+            .gift-card {
+                width: 120px;
+                height: 120px;
+                padding: 20px;
+            }
+            .gift-icon { font-size: 3rem; }
+            .gift-status { font-size: 0.7rem; }
+            .prize-icon { font-size: 3rem; }
+            .prize-title { font-size: 1.2rem; }
+            .prize-desc { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 莫奈花园背景 -->
+    <div id="garden-bg"></div>
+    <canvas id="petal-canvas"></canvas>
+
+    <!-- 矩阵背景 -->
+    <canvas id="matrix-bg"></canvas>
+
+    <!-- 背景音乐 -->
+    <audio id="bg-music" loop>
+        <source src="28051704244-1-192.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 屏幕 1: 莫奈花园 -->
+    <div id="screen-1" class="screen garden">
+        <div class="glass-card">
+            <div style="font-size: 50px; margin-bottom: 10px;">🌸</div>
+            <h1>在这个繁花盛开的季节</h1>
+            <div class="garden-message">
+                有人说，春天是从第一朵花开开始的。<br>
+                但在我看来，是因为有了像你这样独立、温柔且闪光的女性，这个季节才有了真正动人的色彩。<br>
+                愿你在教书育人的间隙，也拥有属于自己的电影人生和灿烂春天。🌸
+            </div>
+
+            <div class="gift-box">
+                <button class="garden-btn" onclick="showSecret('你的独立，比春日阳光更耀眼')">致 独立</button>
+                <button class="garden-btn" onclick="showSecret('你的温柔，像拂过耳畔的微风')">致 温柔</button>
+                <button class="garden-btn" onclick="showSecret('愿你永远自在，不被时间定义')">致 自由</button>
+            </div>
+
+            <div id="secret-text"></div>
+            <button class="enter-matrix-btn" onclick="enterTheMatrix()">Enter The Machine →</button>
+        </div>
+        <div class="garden-footer">Happy Women's Day | Designed with Heart</div>
+    </div>
+
+    <!-- 屏幕 2: 系统启动 -->
+    <div id="screen-2" class="screen hidden">
+        <div class="terminal-text" id="typewriter"></div>
+        <button class="start-btn" id="btn-start" onclick="goToScreen(3)">INITIALIZE SCAN</button>
+    </div>
+
+    <!-- 屏幕 3: 目标扫描 -->
+    <div id="screen-3" class="screen hidden">
+        <div class="scan-frame">
+            <div class="corner tl"></div><div class="corner tr"></div>
+            <div class="corner bl"></div><div class="corner br"></div>
+            <div class="scan-line"></div>
+            <!-- 这里可以用一张抽象的人像剪影，这里用文字代替 -->
+            <div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-size:3rem;">?</div>
+        </div>
+        <div class="data-panel" id="data-panel">
+            <!-- 数据将通过 JS 填充 -->
+        </div>
+        <button class="start-btn" id="btn-decode" style="display:none; margin-top:20px;" onclick="goToScreen(4)">DECODE SIGNAL</button>
+    </div>
+
+    <!-- 屏幕 4: 咖啡解密 -->
+    <div id="screen-4" class="screen hidden">
+        <div class="riddle-container">
+            <p class="riddle-text">"In the world of variables, you are the only constant."</p>
+            <div class="coffee-cup" onclick="brewCoffee()">
+                ☕
+                <div class="steam"></div>
+                <div class="steam"></div>
+                <div class="steam"></div>
+            </div>
+            <p style="font-size: 0.8rem; margin-top:10px; opacity:0.7;">[ Click to brew the solution ]</p>
+            <div class="date-reveal" id="date-result">3.08</div>
+            <button class="start-btn" id="btn-final" style="display:none; margin-top:30px;" onclick="goToScreen(5)">ACCESS PAYLOAD</button>
+        </div>
+    </div>
+
+    <!-- 屏幕 5: 终极交付 -->
+    <div id="screen-5" class="screen hidden">
+        <div class="final-message">
+            <div class="poi-box">
+                <div class="poi-corner pc-tl"></div><div class="poi-corner pc-tr"></div>
+                <div class="poi-corner pc-bl"></div><div class="poi-corner pc-br"></div>
+            </div>
+            <h1>The Relevant Person</h1>
+            <p><strong>System Status:</strong> <span class="highlight">CONFIRMED</span></p>
+            <p>Happy Women's Day.</p>
+            <p>To the teacher who decodes the future, and the fan who survives every plot twist.</p>
+            <p style="border-top: 1px dashed #555; padding-top: 15px; margin-top: 20px;">
+                "In a world of noise, <span class="highlight" style="color:var(--scan-yellow)">you are the signal</span>."
+            </p>
+            <div class="signature">
+                Generated by The Machine<br>
+                March 8th, 2026
+            </div>
+            <button class="start-btn" style="display:block; margin: 20px auto 0;" onclick="goToScreen(6)">Claim Your Gift →</button>
+        </div>
+    </div>
+
+    <!-- 屏幕 6: 抽奖页面 -->
+    <div id="screen-6" class="screen lottery-screen hidden">
+        <div class="lottery-container">
+            <div class="lottery-title">🎁 春日神秘礼盒 🎁</div>
+            <div class="lottery-subtitle">点击礼盒开启惊喜！（最多可抽取3次）</div>
+
+            <div class="gift-box-grid" id="gift-grid">
+                <!-- 礼盒将通过 JS 生成 -->
+            </div>
+
+            <div style="margin-top: 30px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                剩余机会：<span id="remaining-draws">3</span> 次
+            </div>
+        </div>
+    </div>
+
+    <!-- 奖品弹窗 -->
+    <div class="prize-modal" id="prize-modal">
+        <div class="prize-card">
+            <div class="prize-icon" id="prize-icon">🎉</div>
+            <div class="prize-title" id="prize-title">恭喜中奖！</div>
+            <div class="prize-desc" id="prize-desc"></div>
+            <button class="close-prize-btn" onclick="closePrizeModal()">继续抽取</button>
+        </div>
+    </div>
+
+    <!-- 彩蛋 -->
+    <div class="pixel-dog" onclick="dogBark()"></div>
+    <div class="dog-bubble" id="dog-bubble">Woof! 🦴</div>
+
+    <!-- 音乐控制按钮 -->
+    <div class="music-control" id="music-control" onclick="toggleMusic()">
+        <span class="music-icon" id="music-icon">🔊</span>
+    </div>
+
+    <script>
+        // --- 0. 花瓣粒子系统 ---
+        const petalCanvas = document.getElementById('petal-canvas');
+        const pCtx = petalCanvas.getContext('2d');
+        let particles = [];
+
+        function resizePetal() {
+            petalCanvas.width = window.innerWidth;
+            petalCanvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizePetal);
+        resizePetal();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * petalCanvas.width;
+                this.y = Math.random() * petalCanvas.height - petalCanvas.height;
+                this.size = Math.random() * 8 + 4;
+                this.speed = Math.random() * 1.5 + 0.5;
+                this.velX = Math.random() * 1 - 0.5;
+                this.opacity = Math.random() * 0.5 + 0.3;
+                this.flip = Math.random();
+                this.flipSpeed = Math.random() * 0.03;
+            }
+
+            update() {
+                this.y += this.speed;
+                this.x += this.velX;
+                this.flip += this.flipSpeed;
+
+                if (this.y > petalCanvas.height) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                pCtx.save();
+                pCtx.translate(this.x, this.y);
+                pCtx.rotate(this.flip);
+                pCtx.scale(Math.sin(this.flip), 1);
+                pCtx.beginPath();
+                // 绘制花瓣形状
+                pCtx.moveTo(0, 0);
+                pCtx.bezierCurveTo(this.size, -this.size, this.size * 2, this.size, 0, this.size * 2);
+                pCtx.bezierCurveTo(-this.size * 2, this.size, -this.size, -this.size, 0, 0);
+                pCtx.fillStyle = `rgba(255, 182, 193, ${this.opacity})`;
+                pCtx.fill();
+                pCtx.restore();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            pCtx.clearRect(0, 0, petalCanvas.width, petalCanvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        // --- 莫奈花园交互逻辑 ---
+        function showSecret(text) {
+            const el = document.getElementById('secret-text');
+            el.style.animation = 'none';
+            el.offsetHeight; // 触发重绘
+            el.style.animation = 'fadeIn 1s ease';
+            el.innerText = text;
+        }
+
+        function enterTheMatrix() {
+            // 隐藏莫奈花园元素
+            document.getElementById('garden-bg').style.opacity = '0';
+            document.getElementById('petal-canvas').style.opacity = '0';
+            document.getElementById('matrix-bg').style.opacity = '0.15';
+
+            // 开始播放背景音乐
+            const bgMusic = document.getElementById('bg-music');
+            bgMusic.volume = 0.3; // 设置音量为30%
+            bgMusic.play().catch(e => {
+                console.log('Audio play failed:', e);
+                // 如果浏览器阻止自动播放，可以在这里处理
+            });
+
+            goToScreen(2);
+        }
+
+        // --- 1. 矩阵代码雨背景 ---
+        const canvas = document.getElementById('matrix-bg');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const cols = Math.floor(width / 20);
+        const ypos = Array(cols).fill(0);
+
+        function matrix() {
+            ctx.fillStyle = '#0B0C10'; // 覆盖上一帧，制造拖尾
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = '#00FF41';
+            ctx.font = '15pt monospace';
+
+            ypos.forEach((y, ind) => {
+                const text = String.fromCharCode(Math.random() * 128);
+                const x = ind * 20;
+                ctx.fillText(text, x, y);
+                if (y > 100 + Math.random() * 10000) ypos[ind] = 0;
+                else ypos[ind] = y + 20;
+            });
+        }
+        setInterval(matrix, 50);
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        // --- 2. 打字机效果 ---
+        const textToType = [
+            "> Accessing The Machine...",
+            "> Searching for Point of Interest...",
+            "> Analyzing global noise patterns...",
+            "> Signal detected.",
+            "> You are being watched.",
+            "> System has identified a unique intelligence signature."
+        ];
+
+        const typeWriterElement = document.getElementById('typewriter');
+        let lineIndex = 0;
+        let charIndex = 0;
+
+        function typeLine() {
+            if (lineIndex < textToType.length) {
+                const currentLine = textToType[lineIndex];
+                if (charIndex < currentLine.length) {
+                    typeWriterElement.innerHTML += currentLine.charAt(charIndex);
+                    charIndex++;
+                    setTimeout(typeLine, 50); // 打字速度
+                } else {
+                    typeWriterElement.innerHTML += "<br>";
+                    lineIndex++;
+                    charIndex = 0;
+                    setTimeout(typeLine, 300); // 换行延迟
+                }
+            } else {
+                document.getElementById('btn-start').style.display = 'block';
+            }
+        }
+
+        // --- 3. 场景切换逻辑 ---
+        function goToScreen(screenNum) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`screen-${screenNum}`).classList.remove('hidden');
+
+            // 显示音乐控制按钮（在矩阵风格的页面上）
+            const musicControl = document.getElementById('music-control');
+            if (screenNum >= 2) {
+                musicControl.classList.add('visible');
+            } else {
+                musicControl.classList.remove('visible');
+            }
+
+            if (screenNum === 3) startScanAnimation();
+            if (screenNum === 5) triggerConfetti();
+            if (screenNum === 6) {
+                // 初始化抽奖页面
+                initLottery();
+            }
+            if (screenNum === 2) {
+                // 重置打字机效果
+                typeWriterElement.innerHTML = '';
+                lineIndex = 0;
+                charIndex = 0;
+                document.getElementById('btn-start').style.display = 'none';
+                setTimeout(typeLine, 500);
+            }
+        }
+
+        // --- 音乐控制逻辑 ---
+        let musicPlaying = false;
+
+        function toggleMusic() {
+            const bgMusic = document.getElementById('bg-music');
+            const musicIcon = document.getElementById('music-icon');
+
+            if (bgMusic.paused) {
+                bgMusic.play();
+                musicIcon.textContent = '🔊';
+                musicPlaying = true;
+            } else {
+                bgMusic.pause();
+                musicIcon.textContent = '🔇';
+                musicPlaying = false;
+            }
+        }
+
+        // --- 5. 扫描数据分析动画 ---
+        const dataPoints = [
+            { label: "Name", val: "XiXi" },
+            { label: "Occupation", val: "Senior English Educator" },
+            { label: "Logic Level", val: "Nolan-esque / High" },
+            { label: "Energy Source", val: "Caffeine (Americano)" },
+            { label: "Status", val: "RELEVANT PERSON", color: "#FFD700" }
+        ];
+
+        function startScanAnimation() {
+            const panel = document.getElementById('data-panel');
+            panel.innerHTML = ''; // 清空之前的内容
+            let i = 0;
+
+            function addRow() {
+                if (i < dataPoints.length) {
+                    const item = dataPoints[i];
+                    const row = document.createElement('div');
+                    row.className = 'data-row';
+                    row.innerHTML = `
+                        <span class="data-label">${item.label}:</span>
+                        <span class="data-val" style="color:${item.color || 'var(--term-green)'}">${item.val}</span>
+                    `;
+                    panel.appendChild(row);
+                    i++;
+                    setTimeout(addRow, 800);
+                } else {
+                    document.getElementById('btn-decode').style.display = 'block';
+                    // 添加一点故障效果在最后
+                    const lastVal = panel.querySelector('.data-val:last-child');
+                    lastVal.classList.add('glitch-effect');
+                }
+            }
+            addRow();
+        }
+
+        // --- 6. 咖啡解密逻辑 ---
+        function brewCoffee() {
+            const cup = document.querySelector('.coffee-cup');
+            const dateResult = document.getElementById('date-result');
+            const btn = document.getElementById('btn-final');
+
+            // 简单的动画反馈
+            cup.style.transform = "rotate(-10deg) scale(0.9)";
+            setTimeout(() => {
+                cup.style.transform = "rotate(10deg) scale(1.1)";
+                setTimeout(() => {
+                    cup.style.transform = "rotate(0deg) scale(1)";
+                    // 显示日期
+                    dateResult.style.opacity = "1";
+                    dateResult.style.transform = "translateY(0)";
+
+                    // 模拟液体流出变成文字的效果（简化版：直接显示）
+                    setTimeout(() => {
+                        btn.style.display = 'block';
+                    }, 1000);
+                }, 300);
+            }, 300);
+        }
+
+        // --- 7. 彩蛋逻辑 ---
+        function dogBark() {
+            const bubble = document.getElementById('dog-bubble');
+            bubble.style.opacity = '1';
+            bubble.style.bottom = '90px';
+            setTimeout(() => {
+                bubble.style.opacity = '0';
+                bubble.style.bottom = '80px';
+            }, 2000);
+        }
+
+        // --- 8. 抽奖页面逻辑 ---
+        let prizes = [];
+        let giftsRevealed = 0;
+        const maxDraws = 3; // 最多抽3次
+
+        function initLottery() {
+            // 初始化奖品列表
+            prizes = [
+                {
+                    title: "【奶茶自由卡】",
+                    desc: "凭此卡可召唤本人代点奶茶一杯，口味任选，加料不限！🥤",
+                    icon: "🧋"
+                },
+                {
+                    title: "【电影选片权】",
+                    desc: "下次见面，看哪部电影你说了算，爆米花我管够。🎬",
+                    icon: "🎥"
+                },
+                {
+                    title: "【美食探店券】",
+                    desc: "收藏夹里的那家餐厅，这周末一起去把它消灭掉吧。🍲",
+                    icon: "🍴"
+                },
+                {
+                    title: "【不开心消消乐】",
+                    desc: "如果你心情不好，可以获得一次随时语音吐槽的机会。🦁",
+                    icon: "🎭"
+                },
+                {
+                    title: "☀️【春日游园·随行苦力】",
+                    desc: "如果你想去踏青，我负责拎包、打伞、排队买奶茶。你负责貌美如花，我负责保驾护航。",
+                    icon: "🌸"
+                },
+                {
+                    title: "【春日限定·鲜花礼包】",
+                    desc: "一份精心挑选的春色，即刻配送至你手中。愿你的心情像郁金香一样热烈。🌷\n 请用微信给ding发送“春日”二字，获取你的专属鲜花。",
+                    icon: "💐"
+                }
+            ];
+
+            const grid = document.getElementById('gift-grid');
+            grid.innerHTML = '';
+
+            // 创建3个相同的神秘礼盒
+            for (let i = 0; i < 3; i++) {
+                const giftCard = document.createElement('div');
+                giftCard.className = 'gift-card';
+                giftCard.id = 'gift-' + i;
+                giftCard.innerHTML = `
+                    <div class="gift-icon">🎁</div>
+                    <div class="gift-status">点击开启</div>
+                `;
+                giftCard.onclick = () => openGiftBox(i);
+                grid.appendChild(giftCard);
+            }
+
+            // 重置状态
+            giftsRevealed = 0;
+            updateRemainingDraws();
+        }
+
+        function openGiftBox(boxIndex) {
+            if (giftsRevealed >= maxDraws) return;
+
+            const card = document.getElementById('gift-' + boxIndex);
+            if (card.classList.contains('revealed')) return;
+
+            let prize;
+
+            // 确保必中【春日限定·鲜花礼包】
+            if (giftsRevealed === maxDraws - 1 && !hasWonFlower()) {
+                // 最后一次抽取，强制鲜花礼包
+                prize = prizes.find(p => p.title.includes('春日限定·鲜花礼包'));
+            } else {
+                // 随机抽取（已中过的奖品不重复）
+                const availablePrizes = prizes.filter(p => !isAlreadyWon(p));
+                if (availablePrizes.length > 0) {
+                    const prizeIndex = Math.floor(Math.random() * availablePrizes.length);
+                    prize = availablePrizes[prizeIndex];
+                } else {
+                    prize = prizes[Math.floor(Math.random() * prizes.length)];
+                }
+            }
+
+            // 显示彩带效果
+            createConfetti();
+
+            // 标记礼盒为已开启并显示奖品
+            card.classList.add('revealed');
+            card.innerHTML = `
+                <div class="gift-icon">${prize.icon}</div>
+                <div class="gift-status">已开启</div>
+            `;
+
+            // 显示奖品弹窗
+            setTimeout(() => {
+                document.getElementById('prize-icon').textContent = prize.icon;
+                document.getElementById('prize-title').textContent = prize.title;
+                document.getElementById('prize-desc').textContent = prize.desc;
+                document.getElementById('prize-modal').classList.add('show');
+
+                // 更新剩余次数
+                giftsRevealed++;
+                updateRemainingDraws();
+            }, 500);
+        }
+
+        function updateRemainingDraws() {
+            const remaining = maxDraws - giftsRevealed;
+            const remainingEl = document.getElementById('remaining-draws');
+            if (remainingEl) {
+                remainingEl.textContent = remaining;
+            }
+        }
+
+        function isAlreadyWon(prize) {
+            const cards = document.querySelectorAll('.gift-card');
+            for (let card of cards) {
+                const icon = card.querySelector('.gift-icon');
+                if (icon && icon.textContent === prize.icon) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function hasWonFlower() {
+            return isAlreadyWon(prizes.find(p => p.title.includes('春日限定·鲜花礼包')));
+        }
+
+        function closePrizeModal() {
+            document.getElementById('prize-modal').classList.remove('show');
+        }
+
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#a55eea', '#ff6b9d'];
+            const confettiCount = 50;
+
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    confetti.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 50);
+            }
+        }
+
+        // --- 9. 简单的庆祝彩带 (Canvas 覆盖) ---
+        function triggerConfetti() {
+            // 这里为了保持单文件简洁，不引入外部库，仅改变背景颜色闪烁一下作为庆祝
+            const originalBg = getComputedStyle(document.body).backgroundColor;
+            let count = 0;
+            const flash = setInterval(() => {
+                document.body.style.backgroundColor = count % 2 === 0 ? '#1a1a1a' : '#0B0C10';
+                count++;
+                if(count > 6) {
+                    clearInterval(flash);
+                    document.body.style.backgroundColor = originalBg;
+                }
+            }, 100);
+        }
+
+    </script>
+</body>
+</html>
